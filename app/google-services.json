@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "371618726445",
+    "project_id": "sglib-db",
+    "storage_bucket": "sglib-db.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:371618726445:android:aa9cb828fcefed84f02ea4",
+        "android_client_info": {
+          "package_name": "br.com.PhG22.sglib"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbviWG7sHo78wAIOnNBfmgVZnrKReTvbc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">SGLib</string>
+    <string name="full_name">Full Name</string>
+    <string name="e_mail">E-mail</string>
+    <string name="phone">Phone</string>
+    <string name="password">Password</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="create_your_account">Create Your Account</string>
+    <string name="registration_pending">Registration Pending</string>
+    <string name="your_registration_has_been_successfully_submitted_and_is_awaiting_administrator_approval">Your registration has been successfully submitted and is awaiting administrator approval.</string>
+    <string name="back_to_login">Back to Login</string>
+    <string name="email">Email</string>
+    <string name="log_in">Log In</string>
+    <string name="don_t_have_an_account_sign_up">Don\'t have an account? Sign Up</string>
+    <string name="register_as_administrator">Register as Administrator</string>
+    <string name="bem_vindo_administrador">Bem-vindo, Administrador!</string>
+    <string name="bem_vindo_usu_rio">Bem-vindo, Usuário!</string>
+    <string name="main_library_collection">Main Library Collection</string>
+    <string name="book_title">Book Title</string>
+    <string name="book_author">Book Author</string>
+    <string name="waiting_for_registration_approval">Aguardando aprovação do cadastro</string>
+    <string name="the_ocean_s_whisper">The Ocean\'s Whisper</string>
+    <string name="alex_chen">Alex Chen</string>
+    <string name="published_by_bluewave_press_2023">Published by BlueWave Press, 2023</string>
+    <string name="available">Available</string>
+    <string name="request_loan">Request Loan</string>
+    <string name="user_reviews">User Reviews</string>
+</resources>
