@@ -140,7 +140,7 @@ object BookController {
     ) {
         reviewsCollection
             .whereEqualTo("bookId", bookId) // Filtra pelo livro
-            .whereEqualTo("isApproved", true) // Filtra apenas aprovadas
+            .whereEqualTo("approved", true) // Filtra apenas aprovadas
             .orderBy("timestamp", Query.Direction.DESCENDING) // Mais novas primeiro
             .get()
             .addOnSuccessListener { snapshot ->

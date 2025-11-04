@@ -7,9 +7,7 @@ plugins {
 
 android {
     namespace = "br.com.PhG22.sglib"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "br.com.PhG22.sglib"
@@ -43,6 +41,9 @@ android {
 }
 
 dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -68,6 +69,6 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    implementation(libs.glide.v4160)
-    implementation(libs.kotlinx.coroutines.play.services.v181)
+    implementation(libs.glide)
+    implementation(libs.kotlinx.coroutines.play.services)
 }

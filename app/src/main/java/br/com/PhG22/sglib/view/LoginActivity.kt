@@ -22,10 +22,15 @@ class LoginActivity : AppCompatActivity() {
         val etPassword = findViewById<EditText>(R.id.etPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
         val tvSignUp = findViewById<TextView>(R.id.tvSignUp)
+        val tvRegisterAdmin = findViewById<TextView>(R.id.tvRegisterAdmin)
 
         // Navegação para Cadastro de Usuário
         tvSignUp.setOnClickListener {
             startActivity(Intent(this, RegisterUserActivity::class.java))
+        }
+
+        tvRegisterAdmin.setOnClickListener {
+            // TODO: Implementar a tela de registro de administrador
         }
 
         // --- LÓGICA DE LOGIN ---

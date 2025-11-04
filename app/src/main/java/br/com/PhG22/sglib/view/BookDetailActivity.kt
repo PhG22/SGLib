@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager // Importar
 import androidx.recyclerview.widget.RecyclerView // Importar
 import br.com.PhG22.sglib.model.Resenha // Importar
 import br.com.PhG22.sglib.view.adapters.ReviewAdapter // Importar
+import android.util.Log
 
 class BookDetailActivity : AppCompatActivity() {
 
@@ -124,14 +125,16 @@ class BookDetailActivity : AppCompatActivity() {
 
     private fun loadReviews() {
         bookId?.let { id ->
+
+            // !! ADICIONE ESTA LINHA !!
+            Log.d("BookDetailActivity", "Carregando resenhas para o bookId: $id")
+
             BookController.getApprovedReviews(id,
                 onSuccess = { reviewList ->
-                    // Atualiza o adapter com as resenhas aprovadas
                     reviewAdapter.updateData(reviewList)
                 },
                 onError = { errorMsg ->
-                    // Não precisa incomodar o usuário se as resenhas falharem
-                    // (Opcional: logar o erro)
+                    Log.e("BookDetailActivity", "Erro ao buscar resenhas: $errorMsg")
                 }
             )
         }
