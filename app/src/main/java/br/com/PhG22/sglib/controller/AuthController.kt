@@ -3,6 +3,7 @@ package br.com.PhG22.sglib.controller
 // No pacote: controller
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import br.com.PhG22.sglib.model.Administrador
 import br.com.PhG22.sglib.model.Usuario
 import android.util.Log
 
@@ -12,6 +13,7 @@ object AuthController {
     private val db = FirebaseFirestore.getInstance()
     private val usersCollection = db.collection("users")
     private val adminsCollection = db.collection("admins")
+    private val inviteCodesCollection = db.collection("admin_invite_codes")
 
     // Função para registrar um novo usuário
     fun registerUser(
@@ -117,6 +119,68 @@ object AuthController {
                 onError("Erro ao verificar dados do perfil: ${e.message}")
             }
     }
-    // TODO: Implementar registerAdmin (com código)
-    // TODO: Implementar loginUser (com verificação de aprovação e tipo de usuário)
+
+    /**
+     * Registra um novo Administrador (UC1)
+     * 1. Verifica se o código de convite é válido.
+     * 2. Cria o usuário no Firebase Auth.
+     * 3. Salva o admin na coleção 'admins' e marca o código como usado (em uma transação).
+     */
+    fun registerAdmin(
+        email: String,
+        pass: String,
+        nome: String,
+        inviteCode: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        // 1. Verificar o código de convite PRIMEIRO
+        val codeRef = inviteCodesCollection.document(inviteCode)
+        codeRef.get()
+            .addOnSuccessListener { codeDoc ->
+                if (!codeDoc.exists()) {
+                    onError("Código de convite inválido.")
+                    return@addOnSuccessListener
+                }
+                if (codeDoc.getBoolean("isUsed") == true) {
+                    onError("Código de convite já utilizado.")
+                    return@addOnSuccessListener
+                }
+
+                // 2. Código é válido. Criar o usuário no Auth.
+                auth.createUserWithEmailAndPassword(email, pass)
+                    .addOnSuccessListener { authResult ->
+                        val firebaseUser = authResult.user
+                        if (firebaseUser == null) {
+                            onError("Erro ao criar usuário, UID nulo.")
+                            return@addOnSuccessListener
+                        }
+
+                        val newAdmin = Administrador(
+                            uid = firebaseUser.uid,
+                            nome = nome,
+                            email = email
+                        )
+
+                        // 3. Usar transação para salvar admin e atualizar código
+                        db.runTransaction { transaction ->
+                            val adminRef = adminsCollection.document(firebaseUser.uid)
+
+                            // Salva o novo admin
+                            transaction.set(adminRef, newAdmin)
+                            // Marca o código como usado
+                            transaction.update(codeRef, "isUsed", true)
+
+                            null // Sucesso na transação
+                        }
+                            .addOnSuccessListener { onSuccess() }
+                            .addOnFailureListener { e -> onError("Erro na transação: ${e.message}") }
+
+                    }
+                    .addOnFailureListener { e -> onError("Erro ao criar Auth: ${e.message}") }
+            }
+            .addOnFailureListener { e ->
+                onError("Erro ao verificar código: ${e.message}")
+            }
+    }
 }

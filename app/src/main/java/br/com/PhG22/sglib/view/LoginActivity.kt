@@ -1,15 +1,14 @@
 package br.com.PhG22.sglib.view
-
-// No pacote: view
+// No pacote: br.com.PhG22.sglib.view
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
-import android.widget.EditText // Importar
+import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast // Importar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import br.com.PhG22.sglib.R
-import br.com.PhG22.sglib.controller.AuthController
+import br.com.PhG22.sglib.R // Use o seu R
+import br.com.PhG22.sglib.controller.AuthController // Use o seu AuthController
 
 class LoginActivity : AppCompatActivity() {
 
@@ -22,18 +21,21 @@ class LoginActivity : AppCompatActivity() {
         val etPassword = findViewById<EditText>(R.id.etPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
         val tvSignUp = findViewById<TextView>(R.id.tvSignUp)
+
+        // Referência para o link de registro de admin (UC1)
         val tvRegisterAdmin = findViewById<TextView>(R.id.tvRegisterAdmin)
 
-        // Navegação para Cadastro de Usuário
+        // Navegação para Cadastro de Usuário (UC2)
         tvSignUp.setOnClickListener {
             startActivity(Intent(this, RegisterUserActivity::class.java))
         }
 
+        // Navegação para Cadastro de Admin (UC1)
         tvRegisterAdmin.setOnClickListener {
-            // TODO: Implementar a tela de registro de administrador
+            startActivity(Intent(this, RegisterAdminActivity::class.java))
         }
 
-        // --- LÓGICA DE LOGIN ---
+        // Lógica de Login
         btnLogin.setOnClickListener {
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
@@ -45,25 +47,25 @@ class LoginActivity : AppCompatActivity() {
 
             // (Opcional: mostrar um ProgressBar de loading aqui)
 
-            // Chama o Controller para fazer a lógica
+            // Chama o Controller, que faz toda a verificação
             AuthController.loginUser(email, password,
                 onAdminLogin = {
-                    // (Opcional: esconder o ProgressBar)
+                    // Usuário é um Admin
                     Toast.makeText(this, "Login como Admin!", Toast.LENGTH_SHORT).show()
                     navigateTo(AdminMainActivity::class.java)
                 },
                 onUserLogin = {
-                    // (Opcional: esconder o ProgressBar)
+                    // Usuário é um usuário comum APROVADO
                     Toast.makeText(this, "Login bem-sucedido!", Toast.LENGTH_SHORT).show()
                     navigateTo(UserMainActivity::class.java)
                 },
                 onPendingApproval = {
-                    // (Opcional: esconder o ProgressBar)
+                    // Usuário é um usuário comum PENDENTE
                     Toast.makeText(this, "Cadastro pendente de aprovação.", Toast.LENGTH_LONG).show()
                     navigateTo(PendingApprovalActivity::class.java)
                 },
                 onError = { errorMessage ->
-                    // (Opcional: esconder o ProgressBar)
+                    // Falha no login (senha errada, etc)
                     Toast.makeText(this, "Erro: $errorMessage", Toast.LENGTH_LONG).show()
                 }
             )
@@ -76,6 +78,7 @@ class LoginActivity : AppCompatActivity() {
      */
     private fun navigateTo(activityClass: Class<*>) {
         val intent = Intent(this, activityClass)
+        // Limpa todas as activities anteriores da pilha
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish() // Finaliza a LoginActivity

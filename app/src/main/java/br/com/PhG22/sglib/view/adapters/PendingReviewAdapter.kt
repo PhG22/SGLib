@@ -1,0 +1,57 @@
+package br.com.PhG22.sglib.view.adapters
+// No pacote: view.adapters
+import android.content.Context
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.RatingBar
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import br.com.PhG22.sglib.R
+import br.com.PhG22.sglib.model.Resenha
+
+class PendingReviewAdapter(
+    private var reviewList: List<Resenha>,
+    private val onApproveClick: (Resenha) -> Unit,
+    private val onDeleteClick: (Resenha) -> Unit
+) : RecyclerView.Adapter<PendingReviewAdapter.ViewHolder>() {
+
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val tvBookTitle: TextView = view.findViewById(R.id.tvReviewBookTitle)
+        val tvUserName: TextView = view.findViewById(R.id.tvReviewUserName)
+        val ratingBar: RatingBar = view.findViewById(R.id.reviewRatingBar)
+        val tvComment: TextView = view.findViewById(R.id.tvReviewComment)
+        val btnApprove: Button = view.findViewById(R.id.btnApproveReview)
+        val btnDelete: Button = view.findViewById(R.id.btnDeleteReview)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_pending_review, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun getItemCount(): Int = reviewList.size
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val review = reviewList[position]
+
+        holder.tvUserName.text = "por ${review.userName}"
+        holder.ratingBar.rating = review.rating
+        holder.tvComment.text = review.comment
+
+        // TODO: Precisamos do Título do Livro.
+        // O ideal seria buscar o livro (review.bookId) no 'booksCollection'
+        // e preencher o 'tvBookTitle'. Por enquanto, usaremos o ID.
+        holder.tvBookTitle.text = "Livro (ID: ${review.bookId.take(5)}...)"
+
+        holder.btnApprove.setOnClickListener { onApproveClick(review) }
+        holder.btnDelete.setOnClickListener { onDeleteClick(review) }
+    }
+
+    fun updateData(newReviewList: List<Resenha>) {
+        this.reviewList = newReviewList
+        notifyDataSetChanged()
+    }
+}

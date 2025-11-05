@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".view.AddEditBookActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -10,9 +12,10 @@
         android:padding="16dp">
 
         <TextView
+            android:id="@+id/tvTitleHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Add/Edit Book"
+            android:text="Adicionar/Editar Livro"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -24,50 +27,56 @@
             android:layout_marginTop="16dp"
             android:src="@drawable/ic_library_book"
             android:scaleType="centerCrop"
-            android:background="#E0E0E0"/>
+            android:background="#E0E0E0"
+            android:contentDescription="Capa do Livro"/>
 
         <Button
             android:id="@+id/btnUploadCover"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Upload Cover Image"
+            android:text="Carregar Imagem da Capa"
             android:layout_gravity="center_horizontal"/>
 
         <EditText
             android:id="@+id/etBookTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Title" />
+            android:hint="Título"
+            android:inputType="textCapWords"/>
 
         <EditText
             android:id="@+id/etBookAuthor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Author" />
+            android:hint="Autor"
+            android:inputType="textCapWords"/>
 
         <EditText
             android:id="@+id/etBookPublisher"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Publishing" /> <EditText
-        android:id="@+id/etBookYear"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Year"
-        android:inputType="number"/>
+            android:hint="Editora"
+            android:inputType="textCapWords"/>
+
+        <EditText
+            android:id="@+id/etBookYear"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ano de Publicação"
+            android:inputType="number"/>
 
         <EditText
             android:id="@+id/etBookQuantity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Quantity"
+            android:hint="Quantidade em estoque"
             android:inputType="number"/>
 
         <Button
             android:id="@+id/btnSaveBook"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Save"
+            android:text="Salvar"
             android:layout_marginTop="24dp"/>
 
     </LinearLayout>

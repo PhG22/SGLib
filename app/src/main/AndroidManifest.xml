@@ -64,6 +64,11 @@
             android:exported="false"
             android:parentActivityName=".view.AdminMainActivity" />
 
+        <activity
+            android:name=".view.RegisterAdminActivity"
+            android:exported="false"
+            android:parentActivityName=".view.LoginActivity" />
+
     </application>
 
 </manifest>

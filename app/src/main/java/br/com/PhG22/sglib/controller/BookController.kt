@@ -7,10 +7,16 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import br.com.PhG22.sglib.model.Resenha
+import android.net.Uri
+import com.google.firebase.storage.FirebaseStorage
+import java.util.UUID
+import android.util.Log
 
 object BookController {
 
     private val db = FirebaseFirestore.getInstance()
+
+    private val storage = FirebaseStorage.getInstance()
     private val booksCollection = db.collection("books")
     private val loansCollection = db.collection("loans")
     private val usersCollection = db.collection("users")
@@ -149,6 +155,105 @@ object BookController {
             }
             .addOnFailureListener { e ->
                 onError(e.message ?: "Erro ao buscar resenhas.")
+            }
+    }
+
+    /**
+     * Adiciona ou atualiza um livro.
+     * Primeiro, faz o upload da imagem (se houver uma nova) e depois salva no Firestore.
+     */
+    fun addOrUpdateBook(
+        livro: Livro,
+        imageUri: Uri?, // A Uri local da imagem selecionada
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        // Se uma nova imagem foi fornecida (imageUri != null)
+        if (imageUri != null) {
+            // 2. Criar um nome de arquivo único
+            val fileName = "book_covers/${UUID.randomUUID()}.jpg"
+            val coverRef = storage.reference.child(fileName)
+
+            // 3. Fazer o upload do arquivo
+            coverRef.putFile(imageUri)
+                .addOnSuccessListener {
+                    // 4. Upload bem-sucedido, agora pegar a URL de download
+                    coverRef.downloadUrl
+                        .addOnSuccessListener { downloadUrl ->
+                            // 5. Salvar no Firestore com a URL da imagem
+                            val livroComImagem = livro.copy(imageUrl = downloadUrl.toString())
+                            saveBookToFirestore(livroComImagem, onSuccess, onError)
+                        }
+                        .addOnFailureListener { e ->
+                            onError("Erro ao obter URL de download: ${e.message}")
+                        }
+                }
+                .addOnFailureListener { e ->
+                    onError("Erro no upload da imagem: ${e.message}")
+                }
+        } else {
+            // 6. Nenhuma imagem nova fornecida (ex: editando apenas o texto)
+            // Se o livro.id já existir, ele atualiza, senão cria um novo (sem imagem)
+            saveBookToFirestore(livro, onSuccess, onError)
+        }
+    }
+
+    /**
+     * Função auxiliar que realmente salva/atualiza o documento no Firestore
+     */
+    private fun saveBookToFirestore(
+        livro: Livro,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        if (livro.id.isEmpty()) {
+            // Modo ADICIONAR
+            booksCollection.add(livro)
+                .addOnSuccessListener { onSuccess() }
+                .addOnFailureListener { e -> onError(e.message ?: "Erro ao salvar livro.") }
+        } else {
+            // Modo EDITAR/ATUALIZAR
+            // O ID já existe, então usamos .set() para sobrescrever o documento.
+            booksCollection.document(livro.id).set(livro) // <-- ESTA É A LÓGICA DE ATUALIZAÇÃO
+                .addOnSuccessListener { onSuccess() }
+                .addOnFailureListener { e -> onError(e.message ?: "Erro ao atualizar livro.") }
+        }
+    }
+
+    /**
+     * Exclui um livro do Firestore e sua imagem do Storage (UC3)
+     */
+    fun deleteBook(
+        livro: Livro,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        // 1. Excluir o documento do Firestore
+        booksCollection.document(livro.id).delete()
+            .addOnSuccessListener {
+                // 2. Se a exclusão do Firestore for bem-sucedida,
+                //    excluir a imagem do Storage.
+
+                // Verifica se a imageUrl não está vazia e é uma URL do Firebase Storage
+                if (livro.imageUrl.isNotEmpty() && livro.imageUrl.contains("firebasestorage.googleapis.com")) {
+                    val imageRef = storage.getReferenceFromUrl(livro.imageUrl)
+                    imageRef.delete()
+                        .addOnSuccessListener {
+                            // Imagem excluída com sucesso
+                            onSuccess()
+                        }
+                        .addOnFailureListener { e ->
+                            // Erro ao excluir imagem, mas o livro foi excluído
+                            Log.w("BookController", "Livro excluído, mas falha ao excluir imagem: ${e.message}")
+                            onSuccess() // Ainda reporta sucesso, pois o principal (livro) foi excluído
+                        }
+                } else {
+                    // Nenhuma imagem para excluir, apenas sucesso
+                    onSuccess()
+                }
+            }
+            .addOnFailureListener { e ->
+                onError("Erro ao excluir livro: ${e.message}")
             }
     }
 }

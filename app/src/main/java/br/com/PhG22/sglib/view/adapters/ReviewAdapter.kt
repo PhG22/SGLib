@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import br.com.PhG22.sglib.R
 import br.com.PhG22.sglib.model.Resenha
 
+
 class ReviewAdapter(
     private var reviewList: List<Resenha>
 ) : RecyclerView.Adapter<ReviewAdapter.ReviewViewHolder>() {

@@ -1,11 +1,12 @@
 package br.com.PhG22.sglib.view
-
+// No pacote: view
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import br.com.PhG22.sglib.R
-import br.com.PhG22.sglib.view.admin_fragments.ApprovalsFragment
+// Crie estes fragmentos como placeholders vazios por enquanto
 import br.com.PhG22.sglib.view.admin_fragments.ManageBooksFragment
+import br.com.PhG22.sglib.view.admin_fragments.ApprovalsFragment
 import br.com.PhG22.sglib.view.admin_fragments.ManageFinesFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
@@ -18,6 +19,7 @@ class AdminMainActivity : AppCompatActivity() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.admin_bottom_navigation)
         bottomNav.setOnItemSelectedListener(navListener)
 
+        // Carrega o fragmento inicial (Gerenciar Acervo)
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction().replace(
                 R.id.admin_fragment_container,
