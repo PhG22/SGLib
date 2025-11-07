@@ -4,12 +4,16 @@ import br.com.PhG22.sglib.model.Fine
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-object FinesController {
+// Este Controller é para o USUÁRIO ver as suas próprias multas
+object UserFinesController {
 
     private val db = FirebaseFirestore.getInstance()
     private val finesCollection = db.collection("fines")
     private val auth = FirebaseAuth.getInstance()
 
+    /**
+     * Busca apenas as multas NÃO PAGAS do usuário atual (UC6 - Usuário)
+     */
     fun getMyUnpaidFines(
         onSuccess: (List<Fine>) -> Unit,
         onError: (String) -> Unit
@@ -21,11 +25,10 @@ object FinesController {
         }
 
         finesCollection
-            .whereEqualTo("userId", userId)
-            .whereEqualTo("paid", false) // <-- CORRIGIDO para 'paid'
+            .whereEqualTo("userId", userId) // Filtra pelo ID do usuário logado
+            .whereEqualTo("paid", false) // Filtra apenas por multas não pagas
             .get()
             .addOnSuccessListener { snapshot ->
-                // Agora que o model Fine tem @DocumentId, .toObjects() funciona
                 val fines = snapshot.toObjects(Fine::class.java)
                 onSuccess(fines)
             }

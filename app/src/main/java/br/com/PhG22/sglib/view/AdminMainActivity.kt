@@ -1,13 +1,13 @@
 package br.com.PhG22.sglib.view
-// No pacote: view
+
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import br.com.PhG22.sglib.R
-// Crie estes fragmentos como placeholders vazios por enquanto
-import br.com.PhG22.sglib.view.admin_fragments.ManageBooksFragment
 import br.com.PhG22.sglib.view.admin_fragments.ApprovalsFragment
+import br.com.PhG22.sglib.view.admin_fragments.ManageBooksFragment
 import br.com.PhG22.sglib.view.admin_fragments.ManageFinesFragment
+import br.com.PhG22.sglib.view.fragments.ProfileFragment // <-- ADICIONAR IMPORT
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class AdminMainActivity : AppCompatActivity() {
@@ -35,6 +35,7 @@ class AdminMainActivity : AppCompatActivity() {
             R.id.nav_admin_books -> selectedFragment = ManageBooksFragment()
             R.id.nav_admin_approvals -> selectedFragment = ApprovalsFragment()
             R.id.nav_admin_fines -> selectedFragment = ManageFinesFragment()
+            R.id.nav_admin_profile -> selectedFragment = ProfileFragment() // <-- ADICIONAR LINHA
         }
 
         if (selectedFragment != null) {

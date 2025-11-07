@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import br.com.PhG22.sglib.R
 import br.com.PhG22.sglib.model.Emprestimo
 import com.bumptech.glide.Glide
+import br.com.PhG22.sglib.controller.AdminController
 
 class PendingReturnAdapter(
     private val context: Context,
@@ -39,7 +40,14 @@ class PendingReturnAdapter(
         holder.tvBookTitle.text = loan.bookTitle
         holder.tvUserName.text = "Devolvido por: (Carregando...)"
 
-        // TODO: Buscar o nome do usuário (loan.userId) e atualizar 'tvUserName'
+        AdminController.getUserNameById(loan.userId) { nomeDoUsuario ->
+            if (holder.adapterPosition != RecyclerView.NO_POSITION && holder.adapterPosition < loanList.size) {
+                val currentLoan = loanList[holder.adapterPosition]
+                if (currentLoan.id == loan.id) {
+                    holder.tvUserName.text = "Devolvido por: $nomeDoUsuario"
+                }
+            }
+        }
 
         Glide.with(context).load(loan.bookImageUrl).into(holder.ivCover)
 

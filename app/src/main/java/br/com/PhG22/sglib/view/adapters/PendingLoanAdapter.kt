@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import br.com.PhG22.sglib.R
 import br.com.PhG22.sglib.model.Emprestimo
 import com.bumptech.glide.Glide
+import br.com.PhG22.sglib.controller.AdminController
 
 class PendingLoanAdapter(
     private val context: Context,
@@ -41,8 +42,18 @@ class PendingLoanAdapter(
         holder.tvBookTitle.text = loan.bookTitle
         holder.tvUserName.text = "Solicitado por: (Carregando...)" // Precisamos buscar o nome do usuário
 
-        // TODO: Buscar o nome do usuário (loan.userId) no 'usersCollection'
-        // e atualizar o 'tvUserName'
+        // 2. Busca o nome do usuário de forma assíncrona
+        AdminController.getUserNameById(loan.userId) { nomeDoUsuario ->
+            // 3. Verifica se a view ainda está vinculada a este item
+            // (Importante para evitar que o nome apareça no item errado ao reciclar)
+            if (holder.adapterPosition != RecyclerView.NO_POSITION && holder.adapterPosition < loanList.size) {
+                // Verificação extra para garantir que o item não foi reciclado para outro empréstimo
+                val currentLoan = loanList[holder.adapterPosition]
+                if (currentLoan.id == loan.id) {
+                    holder.tvUserName.text = "Solicitado por: $nomeDoUsuario"
+                }
+            }
+        }
 
         Glide.with(context).load(loan.bookImageUrl).into(holder.ivCover)
 

@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.RatingBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import br.com.PhG22.sglib.controller.BookController
 import br.com.PhG22.sglib.R
 import br.com.PhG22.sglib.model.Resenha
 
@@ -41,10 +42,30 @@ class PendingReviewAdapter(
         holder.ratingBar.rating = review.rating
         holder.tvComment.text = review.comment
 
-        // TODO: Precisamos do Título do Livro.
-        // O ideal seria buscar o livro (review.bookId) no 'booksCollection'
-        // e preencher o 'tvBookTitle'. Por enquanto, usaremos o ID.
-        holder.tvBookTitle.text = "Livro (ID: ${review.bookId.take(5)}...)"
+        // 1. Define o texto padrão
+        holder.tvBookTitle.text = "(Carregando Título...)"
+
+        // 2. Busca o nome do livro de forma assíncrona
+        BookController.getBookById(review.bookId,
+            onSuccess = { livro ->
+                // 3. Verifica se a view ainda está vinculada a este item
+                if (holder.adapterPosition != RecyclerView.NO_POSITION && holder.adapterPosition < reviewList.size) {
+                    val currentReview = reviewList[holder.adapterPosition]
+                    if (currentReview.id == review.id) {
+                        holder.tvBookTitle.text = livro.titulo
+                    }
+                }
+            },
+            onError = {
+                // Em caso de erro (ex: livro foi apagado mas a resenha não)
+                if (holder.adapterPosition != RecyclerView.NO_POSITION && holder.adapterPosition < reviewList.size) {
+                    val currentReview = reviewList[holder.adapterPosition]
+                    if (currentReview.id == review.id) {
+                        holder.tvBookTitle.text = "Livro não encontrado"
+                    }
+                }
+            }
+        )
 
         holder.btnApprove.setOnClickListener { onApproveClick(review) }
         holder.btnDelete.setOnClickListener { onDeleteClick(review) }

@@ -5,6 +5,6 @@ data class Usuario(
     val nome: String = "", // [cite: 52]
     val email: String = "", // [cite: 50]
     val telefone: String = "", // [cite: 53]
-    val fotoUrl: String? = null, //
+    val fotoUrl: String = "", //
     val cadastroAprovado: Boolean = false // [cite: 124]
 )

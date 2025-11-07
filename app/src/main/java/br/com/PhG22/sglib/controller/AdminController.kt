@@ -1,5 +1,5 @@
 package br.com.PhG22.sglib.controller
-// No pacote: controller
+
 import android.util.Log
 import br.com.PhG22.sglib.model.Emprestimo
 import br.com.PhG22.sglib.model.Fine
@@ -11,6 +11,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import java.util.Calendar
 import java.util.Date
+import kotlin.math.ceil // <-- IMPORT NECESSÁRIO
 
 object AdminController {
 
@@ -21,17 +22,19 @@ object AdminController {
     private val finesCollection = db.collection("fines")
     private val reviewsCollection = db.collection("reviews")
 
-    /**
-     * Busca todos os usuários pendentes de aprovação (UC2)
-     */
+    // --- NOVA CONSTANTE ---
+    // Defina aqui o valor da multa por dia de atraso
+    private const val MULTA_POR_DIA = 2.50
+
     fun getPendingUsers(
         onSuccess: (List<Usuario>) -> Unit,
         onError: (String) -> Unit
     ) {
         usersCollection
-            .whereEqualTo("cadastroAprovado", false) // Filtra por usuários não aprovados
+            .whereEqualTo("cadastroAprovado", false)
             .get()
             .addOnSuccessListener { snapshot ->
+                // Agora que o model Usuario tem @DocumentId, .toObjects() funciona
                 val users = snapshot.toObjects(Usuario::class.java)
                 onSuccess(users)
             }
@@ -40,25 +43,17 @@ object AdminController {
             }
     }
 
-    /**
-     * Aprova o cadastro de um usuário (UC2)
-     */
     fun approveUser(
         userId: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
         usersCollection.document(userId)
-            .update("cadastroAprovado", true) // Muda o status para aprovado
+            .update("cadastroAprovado", true)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { e -> onError("Erro ao aprovar usuário: ${e.message}") }
     }
 
-    /**
-     * Nega (exclui) o cadastro de um usuário (UC2)
-     * * Nota: Isso exclui o registro do Firestore. O registro de Auth ficará órfão,
-     * mas nosso 'AuthController' já impede o login se o registro do Firestore não existir.
-     */
     fun denyUser(
         userId: String,
         onSuccess: () -> Unit,
@@ -69,9 +64,6 @@ object AdminController {
             .addOnFailureListener { e -> onError("Erro ao negar usuário: ${e.message}") }
     }
 
-    /**
-     * Busca todos os empréstimos pendentes (UC4)
-     */
     fun getPendingLoans(
         onSuccess: (List<Emprestimo>) -> Unit,
         onError: (String) -> Unit
@@ -80,15 +72,13 @@ object AdminController {
             .whereEqualTo("status", "pending")
             .get()
             .addOnSuccessListener { snapshot ->
+                // Agora que o model Emprestimo tem @DocumentId, .toObjects() funciona
                 val loans = snapshot.toObjects(Emprestimo::class.java)
                 onSuccess(loans)
             }
             .addOnFailureListener { e -> onError("Erro ao buscar empréstimos: ${e.message}") }
     }
 
-    /**
-     * Aprova um empréstimo usando uma transação (UC4)
-     */
     fun approveLoan(
         loan: Emprestimo,
         onSuccess: () -> Unit,
@@ -97,17 +87,14 @@ object AdminController {
         val bookRef = booksCollection.document(loan.bookId)
         val loanRef = loansCollection.document(loan.id)
 
-        // Calcula a data de devolução (ex: 14 dias a partir de hoje)
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, 14)
         val dueDate = calendar.time
 
-        // 1. Inicia a Transação
         db.runTransaction { transaction ->
             val bookSnapshot = transaction.get(bookRef)
             val currentQuantity = bookSnapshot.getLong("quantidade") ?: 0
 
-            // 2. Verifica o estoque
             if (currentQuantity <= 0) {
                 throw FirebaseFirestoreException(
                     "Livro indisponível!",
@@ -115,46 +102,38 @@ object AdminController {
                 )
             }
 
-            // 3. Atualiza o estoque do livro (decrementa 1)
             transaction.update(bookRef, "quantidade", FieldValue.increment(-1))
 
-            // 4. Atualiza o empréstimo
             transaction.update(loanRef, mapOf(
                 "status" to "approved",
                 "dueDate" to dueDate
             ))
 
-            null // Transação retorna null em caso de sucesso
+            null
         }
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { e -> onError(e.message ?: "Falha na transação") }
     }
 
-    /**
-     * Nega (exclui) uma solicitação de empréstimo (UC4)
-     */
     fun denyLoan(
         loanId: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        // Simplesmente exclui o documento de solicitação
         loansCollection.document(loanId).delete()
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { e -> onError("Erro ao negar empréstimo: ${e.message}") }
     }
 
-    /**
-     * Busca todas as devoluções pendentes de confirmação (UC5)
-     */
     fun getPendingReturns(
         onSuccess: (List<Emprestimo>) -> Unit,
         onError: (String) -> Unit
     ) {
         loansCollection
-            .whereEqualTo("status", "return_pending") // Solicitado pelo usuário
+            .whereEqualTo("status", "return_pending")
             .get()
             .addOnSuccessListener { snapshot ->
+                // Agora que o model Emprestimo tem @DocumentId, .toObjects() funciona
                 val loans = snapshot.toObjects(Emprestimo::class.java)
                 onSuccess(loans)
             }
@@ -163,84 +142,83 @@ object AdminController {
 
     /**
      * Confirma a devolução de um livro (UC5)
-     * Também verifica se há atraso e cria a multa (UC6)
+     * Lógica de multa (UC6) atualizada para valor dinâmico E ATRIBUIÇÃO DE ID.
      */
     fun confirmReturn(
         loan: Emprestimo,
-        onSuccess: (isLate: Boolean) -> Unit, // Retorna true se uma multa foi gerada
+        onSuccess: (isLate: Boolean) -> Unit,
         onError: (String) -> Unit
     ) {
         val bookRef = booksCollection.document(loan.bookId)
         val loanRef = loansCollection.document(loan.id)
 
         db.runTransaction { transaction ->
-            // 1. Atualiza o status do empréstimo para "devolvido"
             transaction.update(loanRef, "status", "returned")
-
-            // 2. Devolve o livro ao estoque
             transaction.update(bookRef, "quantidade", FieldValue.increment(1))
 
-            // 3. Lógica de Multa (UC6)
             val hoje = Date()
             val isLate = loan.dueDate != null && hoje.after(loan.dueDate)
 
             if (isLate) {
-                // O livro está atrasado. Cria um novo documento de multa.
+                // --- INÍCIO DA CORREÇÃO DO CRASH ---
+                val diffInMillis = hoje.time - loan.dueDate!!.time
+                val diasEmAtraso = ceil(diffInMillis.toDouble() / (1000 * 60 * 60 * 24)).toLong()
+                val valorTotalMulta = diasEmAtraso * MULTA_POR_DIA
+
+                // 1. Cria a referência do novo documento (o ID é gerado aqui)
                 val newFineRef = finesCollection.document()
+
+                // 2. Cria o objeto multa SEM o campo 'id'.
+                // O @DocumentId no model irá preenchê-lo na LEITURA.
                 val multa = Fine(
+                    // id = newFineRef.id, // <-- REMOVER ESTA LINHA CAUSA O CRASH
                     userId = loan.userId,
-                    reason = "Atraso na devolução: ${loan.bookTitle}",
-                    amount = 10.0, // Valor fixo da multa (exemplo)
-                    isPaid = false
+                    reason = "Atraso de $diasEmAtraso dia(s): ${loan.bookTitle}",
+                    amount = valorTotalMulta,
+                    paid = false // <-- CORRIGIDO para 'paid'
                 )
+                // 3. Salva o objeto na referência
                 transaction.set(newFineRef, multa)
+                // --- FIM DA CORREÇÃO DO CRASH ---
             }
 
-            isLate // Retorna o status de atraso
+            isLate
         }
             .addOnSuccessListener { isLate ->
-                onSuccess(isLate) // Sucesso na transação
+                onSuccess(isLate)
             }
             .addOnFailureListener { e ->
                 onError(e.message ?: "Falha ao confirmar devolução")
             }
     }
 
-    /**
-     * Busca todas as resenhas pendentes de aprovação (UC8)
-     */
     fun getPendingReviews(
         onSuccess: (List<Resenha>) -> Unit,
         onError: (String) -> Unit
     ) {
         reviewsCollection
-            .whereEqualTo("approved", false) // <-- Usando o campo "approved" que definimos
+            .whereEqualTo("approved", false)
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { snapshot ->
+                // Agora que o model Resenha tem @DocumentId, .toObjects() funciona
                 val reviews = snapshot.toObjects(Resenha::class.java)
                 onSuccess(reviews)
             }
             .addOnFailureListener { e -> onError("Erro ao buscar resenhas: ${e.message}") }
     }
 
-    /**
-     * Aprova uma resenha (UC8) [cite: 388]
-     */
     fun approveReview(
         reviewId: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
         reviewsCollection.document(reviewId)
-            .update("approved", true) // <-- Usando o campo "approved"
+            .update("approved", true)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { e -> onError("Erro ao aprovar resenha: ${e.message}") }
     }
 
-    /**
-     * Nega (exclui) uma resenha (UC8) [cite: 388]
-     */
     fun denyReview(
         reviewId: String,
         onSuccess: () -> Unit,
@@ -251,35 +229,55 @@ object AdminController {
             .addOnFailureListener { e -> onError("Erro ao excluir resenha: ${e.message}") }
     }
 
-    /**
-     * Busca todas as multas não pagas de todos os usuários (UC6)
-     */
     fun getAllUnpaidFines(
         onSuccess: (List<Fine>) -> Unit,
         onError: (String) -> Unit
     ) {
         finesCollection
-            .whereEqualTo("isPaid", false) // Filtra apenas por multas pendentes
+            .whereEqualTo("paid", false) // <-- CORRIGIDO para 'paid'
             .get()
             .addOnSuccessListener { snapshot ->
+                // Agora que o model Fine tem @DocumentId, .toObjects() funciona
                 val fines = snapshot.toObjects(Fine::class.java)
                 onSuccess(fines)
             }
             .addOnFailureListener { e -> onError("Erro ao buscar multas: ${e.message}") }
     }
 
-    /**
-     * Marca uma multa como paga (UC6)
-     * Esta é a "confirmação" do pagamento
-     */
     fun markFineAsPaid(
         fineId: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
+        if (fineId.isEmpty()) {
+            onError("ID da multa está vazio. Não é possível atualizar.")
+            return
+        }
         finesCollection.document(fineId)
-            .update("isPaid", true) // Define o status da multa como 'paga'
+            .update("paid", true) // <-- CORRIGIDO para 'paid'
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { e -> onError("Erro ao marcar multa como paga: ${e.message}") }
+    }
+
+    /**
+     * Busca o nome de um usuário específico pelo seu UID.
+     * Esta é a nova função auxiliar para corrigir o bug "(Carregando...)".
+     */
+    fun getUserNameById(
+        userId: String,
+        onSuccess: (String) -> Unit
+    ) {
+        usersCollection.document(userId).get()
+            .addOnSuccessListener { document ->
+                val nome = document.getString("nome")
+                if (nome != null) {
+                    onSuccess(nome)
+                } else {
+                    onSuccess("Usuário Desconhecido")
+                }
+            }
+            .addOnFailureListener {
+                onSuccess("Erro ao buscar") // Retorna uma string de erro
+            }
     }
 }

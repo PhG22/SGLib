@@ -71,4 +71,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation(libs.glide)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation("androidx.biometric:biometric-ktx:1.2.0-alpha05")
+    implementation("androidx.security:security-crypto:1.0.0")
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -9,9 +10,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <ImageView
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:src="@drawable/ic_library_book"
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:src="@drawable/ico"
         android:layout_marginBottom="32dp"
         android:contentDescription="Ícone da Biblioteca"/>
 
@@ -50,4 +51,24 @@
         android:layout_height="wrap_content"
         android:text="Registrar como Administrador"
         android:layout_marginTop="8dp"/>
+
+    <!-- NOVO BOTÃO DE BIOMETRIA -->
+    <ImageButton
+        android:id="@+id/btnBiometricLogin"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/ic_fingerprint"
+        app:tint="@color/design_default_color_primary"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_marginTop="24dp"
+        android:contentDescription="Login por Biometria"
+        android:visibility="gone" /> <!-- Começa invisível -->
+
+    <TextView
+        android:id="@+id/tvBiometricLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Log in with Biometrics"
+        android:visibility="gone" /> <!-- Começa invisível -->
+
 </LinearLayout>

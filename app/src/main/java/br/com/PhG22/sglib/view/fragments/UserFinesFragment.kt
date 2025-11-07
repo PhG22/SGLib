@@ -11,18 +11,19 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.PhG22.sglib.R
-import br.com.PhG22.sglib.controller.FinesController // <-- CORRIGIDO
-import br.com.PhG22.sglib.view.adapters.UserFinesAdapter // <-- CORRIGIDO
+import br.com.PhG22.sglib.controller.UserFinesController // <-- MUDADO para FinesController
+import br.com.PhG22.sglib.model.Fine
+import br.com.PhG22.sglib.view.adapters.UserFinesAdapter // <-- MUDADO para MyFinesAdapter
 import java.text.NumberFormat
 import java.util.Locale
 
-class MyFinesFragment : Fragment() {
+class UserFinesFragment : Fragment() {
 
     private lateinit var tvTotalAmount: TextView
     private lateinit var rvFines: RecyclerView
-    private lateinit var noFinesLayout: LinearLayout
-    private lateinit var finesLayout: LinearLayout
-    private lateinit var adapter: UserFinesAdapter // <-- CORRIGIDO
+    private lateinit var noFinesLayout: LinearLayout // Layout para "You have no outstanding fines"
+    private lateinit var finesLayout: LinearLayout // Layout que contém o total e a lista
+    private lateinit var adapter: UserFinesAdapter // <-- ADICIONADO
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,25 +36,24 @@ class MyFinesFragment : Fragment() {
         noFinesLayout = view.findViewById(R.id.no_fines_layout)
         finesLayout = view.findViewById(R.id.fines_layout)
 
-        setupRecyclerView()
+        setupRecyclerView() // <-- ADICIONADO
 
         return view
     }
 
     override fun onResume() {
         super.onResume()
-        loadFines()
+        loadFines() // Carrega as multas quando a aba fica visível
     }
 
     private fun setupRecyclerView() {
-        adapter = UserFinesAdapter(emptyList()) // <-- CORRIGIDO
+        adapter = UserFinesAdapter(emptyList())
         rvFines.layoutManager = LinearLayoutManager(context)
         rvFines.adapter = adapter
     }
 
     private fun loadFines() {
-        // Usa o FinesController para buscar as multas do usuário
-        FinesController.getMyUnpaidFines(
+        UserFinesController.getMyUnpaidFines( // <-- MUDADO para FinesController
             onSuccess = { finesList ->
                 if (finesList.isEmpty()) {
                     // Mostra "You have no outstanding fines"
@@ -64,10 +64,12 @@ class MyFinesFragment : Fragment() {
                     noFinesLayout.visibility = View.GONE
                     finesLayout.visibility = View.VISIBLE
 
+                    // Calcula o total
                     val total = finesList.sumOf { it.amount }
-                    val format = NumberFormat.getCurrencyInstance(Locale.US)
+                    val format = NumberFormat.getCurrencyInstance(Locale.US) // Formata como moeda
                     tvTotalAmount.text = format.format(total)
 
+                    // Atualiza o adapter com a lista
                     adapter.updateData(finesList)
                 }
             },

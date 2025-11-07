@@ -2,11 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_admin_books"
-        android:icon="@drawable/ic_library_book" android:title="Acervo" />
+        android:icon="@drawable/ic_library_book"
+        android:title="Acervo" />
     <item
         android:id="@+id/nav_admin_approvals"
-        android:icon="@drawable/ic_pending_clock" android:title="Aprovações" />
+        android:icon="@drawable/ic_pending_clock"
+        android:title="Aprovações" />
     <item
         android:id="@+id/nav_admin_fines"
-        android:icon="@drawable/ic_dollar_sign" android:title="Multas" />
+        android:icon="@drawable/ic_dollar_sign"
+        android:title="Multas" />
+    <item
+        android:id="@+id/nav_admin_profile"
+        android:icon="@drawable/ic_profile"
+        android:title="Perfil" />
 </menu>

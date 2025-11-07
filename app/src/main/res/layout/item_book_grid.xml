@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="180dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_library_book" /> <TextView
+            android:src="@drawable/ico" /> <TextView
         android:id="@+id/tvBookTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
